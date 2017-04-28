@@ -138,6 +138,8 @@ func (sh *StackdriverHook) Levels() []logrus.Level {
 
 // Fire writes the message to the Stackdriver entry service.
 func (sh *StackdriverHook) Fire(entry *logrus.Entry) error {
+
+	quit := make(chan bool)
 	go func() {
 		var httpReq *logging.HttpRequest
 
@@ -171,7 +173,9 @@ func (sh *StackdriverHook) Fire(entry *logrus.Entry) error {
 		} else {
 			sh.sendLogMessageViaAPI(entry, labels, httpReq)
 		}
+		quit <- true
 	}()
+	<-quit
 
 	return nil
 }
